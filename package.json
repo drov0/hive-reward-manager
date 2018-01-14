@@ -1,0 +1,17 @@
+{
+  "name": "steemgifts",
+  "version": "1.0.0",
+  "description": "SteemGifts is an account/gift card creator for steem.",
+  "main": "main.js",
+  "dependencies": {
+    "randy": "^1.5.1",
+    "steem": "^0.6.7",
+    "sync": "^0.2.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Martin Lees",
+  "license": "ISC"
+}
