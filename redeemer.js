@@ -32,6 +32,7 @@ function execute() {
             var reward_sbd = response[0]['reward_sbd_balance']; // will be claimed as Steem Dollars (SBD)
             var reward_steem = response[0]['reward_steem_balance']; // this parameter is always '0.000 STEEM'
             var reward_vests = response[0]['reward_vesting_balance']; // this is the actual VESTS that will be claimed as SP
+
             var name = response[0].name;
 
             if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0
@@ -58,6 +59,10 @@ function execute() {
                             steem.broadcast.limitOrderCreate(wifs[1][name], name, randy.getRandBits(32),
                                 reward_sbd, sell, false, seconds + 604800, function (err, result) {
                                     console.log("sent buy order for " + name + " : " + sell);
+
+                                    setTimeout(function() { // waiting 10 seconds for the order to go through
+                                        powerup(wifs[1][name], name, sell)
+                                    }, 10000);
                                 });
                         });
                     }
@@ -76,3 +81,12 @@ function run() {
 };
 
 run();
+
+
+function powerup(Activekey, username, amount) {
+    steem.broadcast.transferToVesting(Activekey, username, username, amount, function(err, result) {
+        console.log(err, result);
+    });
+}
+
+
