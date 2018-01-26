@@ -23,7 +23,6 @@ ideally this is what you would do :
 In the future I might adapt this script to add some more options :
 
 - Place limit orders instead of market
-- Power up the liquid steem 
 
 ### How to contribute?
 
