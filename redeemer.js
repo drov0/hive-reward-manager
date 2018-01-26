@@ -4,6 +4,7 @@ var wifs = require('./config.js')
 
 steem.api.setOptions({url: 'https://api.steemit.com'});
 
+var powerup = true; // set to false if you don't want the redeemed steem to be powered up
 
 /**
  * @param {float} num - Number to be analyzedgit
@@ -59,10 +60,11 @@ function execute() {
                             steem.broadcast.limitOrderCreate(wifs[1][name], name, randy.getRandBits(32),
                                 reward_sbd, sell, false, seconds + 604800, function (err, result) {
                                     console.log("sent buy order for " + name + " : " + sell);
-
-                                    setTimeout(function() { // waiting 10 seconds for the order to go through
-                                        powerup(wifs[1][name], name, sell)
-                                    }, 10000);
+                                    if (powerup) {
+                                        setTimeout(function () { // waiting 10 seconds for the order to go through
+                                            powerup(wifs[1][name], name, sell)
+                                        }, 10000);
+                                    }
                                 });
                         });
                     }
