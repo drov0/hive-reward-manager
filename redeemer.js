@@ -61,9 +61,9 @@ function execute() {
                                 reward_sbd, sell, false, seconds + 604800, function (err, result) {
                                     console.log("sent buy order for " + name + " : " + sell);
                                     if (powerup) {
-                                        setTimeout(function () { // waiting 10 seconds for the order to go through
+                                        setTimeout(function () { // waiting 2 minutes for the order to go through
                                             powerup(wifs[1][name], name, sell)
-                                        }, 10000);
+                                        }, 120000);
                                     }
                                 });
                         });
