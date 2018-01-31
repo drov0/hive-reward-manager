@@ -63,7 +63,7 @@ function execute() {
                                     if (powerup) {
                                         setTimeout(function () { // waiting 2 minutes for the order to go through
                                             powerup(wifs[1][name], name, sell)
-                                        }, 120000);
+                                        }, 20000);
                                     }
                                 });
                         });
