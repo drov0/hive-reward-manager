@@ -61,9 +61,9 @@ function execute() {
                                 reward_sbd, sell, false, seconds + 604800, function (err, result) {
                                     console.log("sent buy order for " + name + " : " + sell);
                                     if (powerup) {
-                                        setTimeout(function () { // waiting 20 seconds for the order to go through
-                                            powerup(wifs[1][name], name, sell)
-                                        }, 20000);
+                                        setTimeout(function () { // waiting 2 minutes for the order to go through
+                                            power_up(wifs[1][name], name, sell)
+                                        }, 120000);
                                     }
                                 });
                         });
@@ -85,7 +85,7 @@ function run() {
 run();
 
 
-function powerup(Activekey, username, amount) {
+function power_up(Activekey, username, amount) {
     steem.broadcast.transferToVesting(Activekey, username, username, amount, function(err, result) {
         console.log(err, result);
     });
