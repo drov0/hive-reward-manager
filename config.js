@@ -1,4 +1,13 @@
 module.exports =
+    {
+      "howo" : {
+          "wif":"wifkey",
+          "powerup" : true
+      }
+    };
+
+/*
+module.exports =
     [
         ["howo", "account2", "account3"],
         {
@@ -7,3 +16,4 @@ module.exports =
             "account3":"Activekeyaccount3",
         }
     ];
+ */
