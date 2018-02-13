@@ -1,19 +1,15 @@
 module.exports =
     {
       "howo" : {
-          "wif":"wifkey",
+          "wif":"activewif",
           "powerup" : true
+      },
+        "account2" : {
+          "wif":"activewif",
+          "powerup" : true
+      },
+        "account3" : {
+          "wif":"activewif",
+          "powerup" : false
       }
     };
-
-/*
-module.exports =
-    [
-        ["howo", "account2", "account3"],
-        {
-            "howo":"Activekeyhowo",
-            "account2":"Activekeyaccount2",
-            "account3":"Activekeyaccount3",
-        }
-    ];
- */

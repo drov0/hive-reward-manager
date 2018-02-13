@@ -80,6 +80,7 @@ function run() {
     setInterval(execute, 60000);
 };
 
+console.log("Running...");
 run();
 
 
