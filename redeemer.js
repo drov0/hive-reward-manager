@@ -34,10 +34,12 @@ function execute() {
             var reward_steem = response[0]['reward_steem_balance']; // this parameter is always '0.000 STEEM'
             var reward_vests = response[0]['reward_vesting_balance']; // this is the actual VESTS that will be claimed as SP
 
+            var name = response[0].name;
+
             if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0
                 || parseFloat(reward_vests) > 0) {
-                steem.broadcast.claimRewardBalance(accounts[account]['wif'], account, reward_steem, reward_sbd, reward_vests, function (err, result) {
-                    console.log(account + " reward : " + reward_sbd + " SBD, " + reward_steem + " STEEM " + reward_vests + " vests");
+                steem.broadcast.claimRewardBalance(accounts[name]['wif'], name, reward_steem, reward_sbd, reward_vests, function (err, result) {
+                    console.log(name + " reward : " + reward_sbd + " SBD, " + reward_steem + " STEEM " + reward_vests + " vests");
                     if (parseFloat(reward_sbd) > 0) {
                         var seconds = Math.round(Date.now() / 1000);
                         steem.api.getOrderBook(1, function (err, price) {
@@ -55,12 +57,12 @@ function execute() {
                             else
                                 sell += " STEEM"
 
-                            steem.broadcast.limitOrderCreate(accounts[account]['wif'], account, randy.getRandBits(32),
+                            steem.broadcast.limitOrderCreate(accounts[name]['wif'], name, randy.getRandBits(32),
                                 reward_sbd, sell, false, seconds + 604800, function (err, result) {
-                                    console.log("sent buy order for " + account + " : " + sell);
-                                    if (accounts[account]['powerup']) {
+                                    console.log("sent buy order for " + name + " : " + sell);
+                                    if (accounts[name]['powerup']) {
                                         setTimeout(function () { // waiting 2 minutes for the order to go through
-                                            power_up(accounts[account]['wif'], account, sell)
+                                            power_up(accounts[name]['wif'], name, sell)
                                         }, 120000);
                                     }
                                 });
