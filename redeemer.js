@@ -73,7 +73,6 @@ function execute() {
             }
         });
     }
-    console.log("Done");
 }
 
 
