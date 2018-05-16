@@ -90,7 +90,7 @@ function execute() {
                 if (parseFloat(response[0].balance) > 0)
                 {
                     power_up(accounts[name]['wif'], name, response[0].balance);
-                    console.log(response[0].balance + " on the account, powering it up")
+                    console.log(response[0].balance + " on "+name+", powering it up")
                 }
             }
 
