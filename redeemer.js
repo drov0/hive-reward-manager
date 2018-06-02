@@ -78,7 +78,7 @@ function execute() {
 
 function run() {
     execute();
-    setInterval(execute, 60000);
+    setInterval(execute, 300000);
 };
 
 console.log("Running...");
