@@ -57,7 +57,7 @@ async function sell_sbd(account, reward_sbd, name)
                     console.log("sent buy order for " + name + " : " + sell);
                     if (account['power_up']) {
                         setTimeout(function () { // waiting 2 minutes for the order to go through
-                            power_up(account['wif'], name, sell);
+                            power_up(account['wif'], name, name, sell);
                             return resolve("=");
                         }, 120000);
                     } else
@@ -86,11 +86,17 @@ function execute() {
                 }
             }
 
-            if (accounts[name].always_powerup === true) {
+            if (accounts[name].convert_action === "powerup") {
                 if (parseFloat(response[0].balance) > 0)
                 {
-                    power_up(accounts[name]['wif'], name, response[0].balance);
-                    console.log(response[0].balance + " on "+name+", powering it up")
+                    power_up(accounts[name]['wif'], name, accounts[name].convert_to_account, response[0].balance);
+                    console.log(response[0].balance + " on "+name+", powering it up to "+ accounts[name].convert_to_account)
+                }
+            } else if (accounts[name].convert_action === "put_in_savings") {
+                if (parseFloat(response[0].balance) > 0)
+                {
+                    transfer_to_savings(accounts[name]['wif'],name, accounts[name].convert_to_account, response[0].balance);
+                    console.log(response[0].balance + " on "+name+", putting it in the savings to "+ accounts[name].convert_to_account)
                 }
             }
 
@@ -118,8 +124,14 @@ run();
 
 
 
-function power_up(Activekey, username, amount) {
-    steem.broadcast.transferToVesting(Activekey, username, username, amount, function(err, result) {
+function power_up(Activekey, from, to, amount) {
+    steem.broadcast.transferToVesting(Activekey, from, to, amount, "",function(err, result) {
+
+    });
+}
+
+function transfer_to_savings(Activekey, from, to, amount) {
+    steem.broadcast.transferToSavings(Activekey, from, to, amount, "",function(err, result) {
 
     });
 }
