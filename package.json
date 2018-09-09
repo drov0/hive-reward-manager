@@ -4,6 +4,8 @@
   "description": "SteemGifts is an account/gift card creator for steem.",
   "main": "main.js",
   "dependencies": {
+    "dsteem": "^0.9.0",
+    "moment": "^2.22.2",
     "randy": "^1.5.1",
     "steem": "^0.6.7",
     "sync": "^0.2.5"

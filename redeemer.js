@@ -1,8 +1,46 @@
 var steem = require('steem');
 var randy = require("randy");
 var accounts = require('./config.js')
+const moment = require("moment")
 
 steem.api.setOptions({url: 'https://api.steemit.com'});
+
+const dsteem = require('dsteem');
+let opts = {};
+//connect to production server
+opts.addressPrefix = 'STM';
+opts.chainId =
+    '0000000000000000000000000000000000000000000000000000000000000000';
+//connect to server which is connected to the network/production
+const client = new dsteem.Client('https://api.steemit.com');
+
+function power_down(account, wif, vesting)
+{
+    return new Promise(async resolve => {
+
+        const privateKey = dsteem.PrivateKey.fromString(wif);
+        const op = [
+            'withdraw_vesting',
+            {
+                account: account,
+                vesting_shares: vesting,
+            },
+        ];
+        client.broadcast.sendOperations([op], privateKey).then(
+            function(result) {
+                console.log("Power down reset on "+account);
+                return resolve("=");
+            },
+            function(error) {
+                console.error(error);
+                return resolve("=");
+            }
+        );
+
+    });
+}
+
+
 
 /**
  * @param {float} num - Number to be analyzedgit
@@ -71,14 +109,30 @@ async function sell_sbd(account, reward_sbd, name)
 
 function execute() {
     console.log("Getting the rewards...");
-    for (var account in accounts) {
+    for (let account in accounts) {
 
         steem.api.getAccounts([account], async  function (err, response) {
-            var reward_sbd = response[0]['reward_sbd_balance']; // will be claimed as Steem Dollars (SBD)
-            var reward_steem = response[0]['reward_steem_balance']; // this parameter is always '0.000 STEEM'
-            var reward_vests = response[0]['reward_vesting_balance']; // this is the actual VESTS that will be claimed as SP
+            const reward_sbd = response[0]['reward_sbd_balance']; // will be claimed as Steem Dollars (SBD)
+            const reward_steem = response[0]['reward_steem_balance']; // this parameter is always '0.000 STEEM'
+            const reward_vests = response[0]['reward_vesting_balance']; // this is the actual VESTS that will be claimed as SP
 
-            var name = response[0].name;
+            const name = response[0].name;
+
+            if (accounts[name].reset_power_down === true) {
+                const current_date = moment();
+                const power_down_date = moment(response[0].next_vesting_withdrawal);
+                const duration = moment.duration(power_down_date.diff(current_date));
+
+                if (duration._milliseconds > 0 && accounts[name].power_down_date === undefined)
+                {
+                    accounts[name].power_down_date = response[0].next_vesting_withdrawal;
+                } else if (accounts[name].power_down_date !== undefined && accounts[name].power_down_date !== response[0].next_vesting_withdrawal)
+                {
+                    await power_down(name, accounts[name]['wif'], response[0].vesting_shares);
+                    accounts[name].power_down_date = response[0].next_vesting_withdrawal;
+                }
+            }
+
             if (accounts[name].always_convert === true) {
                 if (parseFloat(response[0].sbd_balance) > 0)
                 {
@@ -116,7 +170,7 @@ function execute() {
 
 function run() {
     execute();
-    setInterval(execute, 300000);
+    setInterval(execute, 600000);
 };
 
 console.log("Running...");
