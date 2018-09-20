@@ -6,6 +6,8 @@ To use it, update the file "config.js" and put as many account as you want. Just
 
 This means that you will always have liquid steem, never again will you see the "redeem reward" button nor sbd.  
 
+Please check https://steemit.com/@howo to check for updates, I blog about it occasionally 
+
 ### Technology Stack
 
 The script is made in nodejs and uses [Steem-js](https://github.com/steemit/steem-js). The easiest way to run it is to use [pm2](http://pm2.keymetrics.io/) 
