@@ -128,7 +128,7 @@ function execute() {
                     accounts[name].power_down_date = response[0].next_vesting_withdrawal;
                 } else if (accounts[name].power_down_date !== undefined && accounts[name].power_down_date !== response[0].next_vesting_withdrawal)
                 {
-                    console.log("reset power down on "+name +"Powering down "+ response[0].vesting_shares+ "vests")
+                    console.log("reset power down on "+name +"Powering down "+ response[0].vesting_shares)
                     await power_down(name, accounts[name]['wif'], response[0].vesting_shares);
                     accounts[name].power_down_date = response[0].next_vesting_withdrawal;
                 }
