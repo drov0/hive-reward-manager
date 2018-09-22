@@ -93,13 +93,7 @@ async function sell_sbd(account, reward_sbd, name)
             steem.broadcast.limitOrderCreate(account['wif'], name, randy.getRandBits(32),
                 reward_sbd, sell, false, seconds + 604800, function (err, result) {
                     console.log("sent buy order for " + name + " : " + sell);
-                    if (account['power_up']) {
-                        setTimeout(function () { // waiting 2 minutes for the order to go through
-                            power_up(account['wif'], name, name, sell);
-                            return resolve("=");
-                        }, 120000);
-                    } else
-                        return resolve("=");
+                    return resolve("=");
                 });
         } else
             return resolve("=")
