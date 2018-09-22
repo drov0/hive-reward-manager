@@ -128,7 +128,7 @@ function execute() {
                 }
             }
 
-            if (accounts[name].always_convert === true) {
+            if (accounts[name].convert_sbd === true) {
                 if (parseFloat(response[0].sbd_balance) > 0)
                 {
                     await sell_sbd(accounts[name], response[0].sbd_balance, name);
