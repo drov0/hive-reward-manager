@@ -135,17 +135,17 @@ function execute() {
                 }
             }
 
-            if (accounts[name].convert_action === "powerup") {
+            if (accounts[name].liquid_action === "powerup") {
                 if (parseFloat(response[0].balance) > 0)
                 {
-                    power_up(accounts[name]['wif'], name, accounts[name].convert_to_account, response[0].balance);
-                    console.log(response[0].balance + " on "+name+", powering it up to "+ accounts[name].convert_to_account)
+                    power_up(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
+                    console.log(response[0].balance + " on "+name+", powering it up to "+ accounts[name].liquid_to_account)
                 }
-            } else if (accounts[name].convert_action === "put_in_savings") {
+            } else if (accounts[name].liquid_action === "put_in_savings") {
                 if (parseFloat(response[0].balance) > 0)
                 {
-                    transfer_to_savings(accounts[name]['wif'],name, accounts[name].convert_to_account, response[0].balance);
-                    console.log(response[0].balance + " on "+name+", putting it in the savings to "+ accounts[name].convert_to_account)
+                    transfer_to_savings(accounts[name]['wif'],name, accounts[name].liquid_to_account, response[0].balance);
+                    console.log(response[0].balance + " on "+name+", putting it in the savings to "+ accounts[name].liquid_to_account)
                 }
             }
 
