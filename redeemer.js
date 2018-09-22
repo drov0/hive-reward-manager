@@ -128,7 +128,7 @@ function execute() {
                     accounts[name].power_down_date = response[0].next_vesting_withdrawal;
                 } else if (accounts[name].power_down_date !== undefined && accounts[name].power_down_date !== response[0].next_vesting_withdrawal)
                 {
-                    console.log("reset power down on "+name +"Powering down "+ response[0].vesting_shares)
+                    console.log("reset power down on "+name +"Powering down "+ response[0].vesting_shares);
                     await power_down(name, accounts[name]['wif'], response[0].vesting_shares);
                     accounts[name].power_down_date = response[0].next_vesting_withdrawal;
                 }
@@ -157,7 +157,7 @@ function execute() {
 
             if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0 || parseFloat(reward_vests) > 0) {
                 steem.broadcast.claimRewardBalance(accounts[name]['wif'], name, reward_steem, reward_sbd, reward_vests, async function (err, result) {
-                    console.log(name + " reward : " + reward_sbd + " SBD, " + reward_steem + " STEEM " + reward_vests + " vests");
+                    console.log(name + " reward : " + reward_sbd + " , " + reward_steem + " " + reward_vests);
                     if (parseFloat(reward_sbd) > 0) {
                         await sell_sbd(accounts[name], reward_sbd, name)
                     }
