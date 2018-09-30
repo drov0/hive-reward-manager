@@ -100,8 +100,14 @@ async function sell_sbd(account, reward_sbd, name)
     });
 }
 
+function wait(time)
+{
+    return new Promise(resolve => {
+        setTimeout(() => resolve('☕'), time*1000); // miliseconds to seconds
+    });
+}
 
-function execute() {
+function execute(times) {
     console.log("Getting the rewards...");
     for (let account in accounts) {
 
@@ -128,45 +134,54 @@ function execute() {
                 }
             }
 
-            if (accounts[name].convert_sbd === true) {
-                if (parseFloat(response[0].sbd_balance) > 0)
-                {
-                    await sell_sbd(accounts[name], response[0].sbd_balance, name);
-                }
-            }
+            // if it's been an hour since the last execution.
+            if (times === 60) {
 
-            if (accounts[name].liquid_action === "powerup") {
-                if (parseFloat(response[0].balance) > 0)
-                {
-                    power_up(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
-                    console.log(response[0].balance + " on "+name+", powering it up to "+ accounts[name].liquid_to_account)
-                }
-            } else if (accounts[name].liquid_action === "put_in_savings") {
-                if (parseFloat(response[0].balance) > 0)
-                {
-                    transfer_to_savings(accounts[name]['wif'],name, accounts[name].liquid_to_account, response[0].balance);
-                    console.log(response[0].balance + " on "+name+", putting it in the savings to "+ accounts[name].liquid_to_account)
-                }
-            }
-
-            if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0 || parseFloat(reward_vests) > 0) {
-                steem.broadcast.claimRewardBalance(accounts[name]['wif'], name, reward_steem, reward_sbd, reward_vests, async function (err, result) {
-                    console.log(name + " reward : " + reward_sbd + " , " + reward_steem + " " + reward_vests);
-                    if (parseFloat(reward_sbd) > 0) {
-                        await sell_sbd(accounts[name], reward_sbd, name)
+                if (accounts[name].convert_sbd === true) {
+                    if (parseFloat(response[0].sbd_balance) > 0) {
+                        await sell_sbd(accounts[name], response[0].sbd_balance, name);
                     }
+                }
 
-                });
+                if (accounts[name].liquid_action === "powerup") {
+                    if (parseFloat(response[0].balance) > 0) {
+                        power_up(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
+                        console.log(response[0].balance + " on " + name + ", powering it up to " + accounts[name].liquid_to_account)
+                    }
+                } else if (accounts[name].liquid_action === "put_in_savings") {
+                    if (parseFloat(response[0].balance) > 0) {
+                        transfer_to_savings(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
+                        console.log(response[0].balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
+                    }
+                }
+
+
+                if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0 || parseFloat(reward_vests) > 0) {
+                    steem.broadcast.claimRewardBalance(accounts[name]['wif'], name, reward_steem, reward_sbd, reward_vests, async function () {
+                        console.log(name + " reward : " + reward_sbd + " , " + reward_steem + " " + reward_vests);
+                        if (parseFloat(reward_sbd) > 0) {
+                            await sell_sbd(accounts[name], reward_sbd, name)
+                        }
+
+                    });
+                }
             }
         });
     }
 }
 
 
-function run() {
-    execute();
-    setInterval(execute, 600000);
-};
+async function run() {
+    let i = 0;
+    while (true) {
+        await wait(60);
+        await execute(i);
+        i++;
+
+        if (i > 60)
+            i = 0;
+    }
+}
 
 console.log("Running...");
 run();
