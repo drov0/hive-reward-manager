@@ -108,7 +108,7 @@ function wait(time)
 }
 
 function execute(times) {
-    console.log("Getting the rewards...");
+    console.log("Execution minute : " + times);
     for (let account in accounts) {
 
         steem.api.getAccounts([account], async  function (err, response) {
@@ -134,9 +134,9 @@ function execute(times) {
                 }
             }
 
-            // if it's been an hour since the last execution.
-            if (times === 60) {
-
+            // Triggers every 5 minutes
+            if (times%5 === 0) {
+                console.log("Selling sbd and executing actions on it.");
                 if (accounts[name].convert_sbd === true) {
                     if (parseFloat(response[0].sbd_balance) > 0) {
                         await sell_sbd(accounts[name], response[0].sbd_balance, name);
@@ -155,7 +155,9 @@ function execute(times) {
                     }
                 }
 
-
+            // if it's been an hour since the last execution.
+            if (times === 60) {
+                console.log("Claiming rewards");
                 if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0 || parseFloat(reward_vests) > 0) {
                     steem.broadcast.claimRewardBalance(accounts[name]['wif'], name, reward_steem, reward_sbd, reward_vests, async function () {
                         console.log(name + " reward : " + reward_sbd + " , " + reward_steem + " " + reward_vests);
