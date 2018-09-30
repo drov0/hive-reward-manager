@@ -154,6 +154,7 @@ function execute(times) {
                         console.log(response[0].balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
                     }
                 }
+            }
 
             // if it's been an hour since the last execution.
             if (times === 60) {
@@ -170,7 +171,6 @@ function execute(times) {
             }
         });
     }
-}
 
 
 async function run() {
