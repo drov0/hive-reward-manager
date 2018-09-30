@@ -111,7 +111,7 @@ function execute(times) {
     console.log("Execution minute : " + times);
     for (let account in accounts) {
 
-        steem.api.getAccounts([account], async  function (err, response) {
+        steem.api.getAccounts([account], async function (err, response) {
             const reward_sbd = response[0]['reward_sbd_balance']; // will be claimed as Steem Dollars (SBD)
             const reward_steem = response[0]['reward_steem_balance']; // this parameter is always '0.000 STEEM'
             const reward_vests = response[0]['reward_vesting_balance']; // this is the actual VESTS that will be claimed as SP
@@ -123,19 +123,17 @@ function execute(times) {
                 const power_down_date = moment(response[0].next_vesting_withdrawal);
                 const duration = moment.duration(power_down_date.diff(current_date));
 
-                if (duration._milliseconds > 0 && accounts[name].power_down_date === undefined)
-                {
+                if (duration._milliseconds > 0 && accounts[name].power_down_date === undefined) {
                     accounts[name].power_down_date = response[0].next_vesting_withdrawal;
-                } else if (accounts[name].power_down_date !== undefined && accounts[name].power_down_date !== response[0].next_vesting_withdrawal)
-                {
-                    console.log("reset power down on "+name +"Powering down "+ response[0].vesting_shares);
+                } else if (accounts[name].power_down_date !== undefined && accounts[name].power_down_date !== response[0].next_vesting_withdrawal) {
+                    console.log("reset power down on " + name + "Powering down " + response[0].vesting_shares);
                     await power_down(name, accounts[name]['wif'], response[0].vesting_shares);
                     accounts[name].power_down_date = response[0].next_vesting_withdrawal;
                 }
             }
 
             // Triggers every 5 minutes
-            if (times%5 === 0) {
+            if (times % 5 === 0) {
                 console.log("Selling sbd and executing actions on it.");
                 if (accounts[name].convert_sbd === true) {
                     if (parseFloat(response[0].sbd_balance) > 0) {
@@ -171,6 +169,7 @@ function execute(times) {
             }
         });
     }
+}
 
 
 async function run() {
