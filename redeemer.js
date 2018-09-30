@@ -134,7 +134,7 @@ function execute(times) {
 
             // Triggers every 5 minutes
             if (times % 5 === 0) {
-                console.log("Selling sbd and executing actions on it.");
+                console.log("Selling sbd and executing actions on it for account : " + name);
                 if (accounts[name].convert_sbd === true) {
                     if (parseFloat(response[0].sbd_balance) > 0) {
                         await sell_sbd(accounts[name], response[0].sbd_balance, name);
@@ -156,7 +156,7 @@ function execute(times) {
 
             // if it's been an hour since the last execution.
             if (times === 60) {
-                console.log("Claiming rewards");
+                console.log("Claiming rewards for account : " + name);
                 if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0 || parseFloat(reward_vests) > 0) {
                     steem.broadcast.claimRewardBalance(accounts[name]['wif'], name, reward_steem, reward_sbd, reward_vests, async function () {
                         console.log(name + " reward : " + reward_sbd + " , " + reward_steem + " " + reward_vests);
@@ -175,8 +175,8 @@ function execute(times) {
 async function run() {
     let i = 0;
     while (true) {
-        await wait(60);
         await execute(i);
+        await wait(60);
         i++;
 
         if (i > 60)
