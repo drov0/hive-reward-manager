@@ -1,7 +1,7 @@
 {
   "name": "steemgifts",
   "version": "1.0.0",
-  "description": "SteemGifts is an account/gift card creator for steem.",
+  "description": "Steem reward manager is a tool to automate the daily grind with claiming rewards and other steem tasks",
   "main": "main.js",
   "dependencies": {
     "dsteem": "^0.10.1",
