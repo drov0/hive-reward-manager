@@ -137,7 +137,7 @@ async function execute(times) {
         }
 
         // Triggers every 5 minutes
-        if (times % 5 === 0) {
+        if (times % 5 === 0 || times === 0) {
             if (accounts[name].convert_sbd === true) {
                 if (parseFloat(response[0].sbd_balance) > 0) {
                     console.log("Selling sbd and executing actions on it for account : " + name);
