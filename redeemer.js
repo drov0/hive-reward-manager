@@ -159,7 +159,7 @@ async function execute(times) {
         }
 
         // if it's been an hour since the last execution.
-        if (times === 60 || times === 0) {
+        if (times === 60) {
             console.log("Claiming rewards for account : " + name);
             if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0 || parseFloat(reward_vests) > 0) {
 
