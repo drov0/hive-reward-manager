@@ -130,8 +130,11 @@ async function execute(times) {
             if (duration._milliseconds > 0 && accounts[name].power_down_date === undefined) {
                 accounts[name].power_down_date = response[0].next_vesting_withdrawal;
             } else if (accounts[name].power_down_date !== undefined && accounts[name].power_down_date !== response[0].next_vesting_withdrawal) {
-                console.log("reset power down on " + name + "Powering down " + response[0].vesting_shares);
-                await power_down(name, accounts[name]['wif'], response[0].vesting_shares);
+                // Reason for this is that you can't power down all your sp if you voting power isn't 100%
+                // 100 is one extra 0.1%  just to be sure that the power down will work
+                let current_available_shares = Math.floor((response[0].voting_power - 100) / 10000 * parseFloat(response[0].vesting_shares)) + " VESTS";
+                console.log("reset power down on " + name + "Powering down " + current_available_shares);
+                await power_down(name, accounts[name]['wif'], current_available_shares);
                 accounts[name].power_down_date = response[0].next_vesting_withdrawal;
             }
         }
