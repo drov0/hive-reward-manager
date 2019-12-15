@@ -135,7 +135,8 @@ async function execute(times) {
                 let current_available_shares = Math.floor((response[0].voting_power - 100) / 10000 * parseFloat(response[0].vesting_shares)) + ".000000 VESTS";
                 console.log("reset power down on " + name + "Powering down " + current_available_shares);
                 await power_down(name, accounts[name]['wif'], current_available_shares);
-                accounts[name].power_down_date = response[0].next_vesting_withdrawal;
+                let updated_account = await client.database.getAccounts([account]);
+                accounts[name].power_down_date = updated_account[0].next_vesting_withdrawal;
             }
         }
 
