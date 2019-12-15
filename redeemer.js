@@ -142,8 +142,12 @@ async function execute(times) {
 
         // Triggers every 5 minutes
         if (times % 5 === 0 || times === 0) {
-            if (accounts[name].convert_sbd === true) {
-                if (parseFloat(response[0].sbd_balance) > 0) {
+            if (parseFloat(response[0].sbd_balance) > 0) {
+                if (accounts[name].convert_sbd === true) {
+                    console.log("converting sbd " + name);
+                    convert_sbd(accounts[name]['wif'], name, parseFloat(response[0].sbd_balance))
+                }
+                else if (accounts[name].sell_sbd === true) {
                     console.log("Selling sbd and executing actions on it for account : " + name);
                     await sell_sbd(accounts[name], response[0].sbd_balance, name);
                 }
@@ -207,6 +211,29 @@ async function run() {
 console.log("Running...");
 run();
 
+function convert_sbd(activekey, owner, amount, tries = 0) {
+
+    const privateKey = dsteem.PrivateKey.fromString(activekey);
+
+    const op = [
+        'convert',
+        {
+            amount: new dsteem.Asset(amount, "SBD"),
+            owner: owner,
+            requestid: Math.floor(Math.random() * 4294967294), // 4294967294 is the max request id possible
+        },
+    ];
+
+    client.broadcast.sendOperations([op], privateKey).then(
+        function(result) {
+        },
+        function(error) {
+            if (error.message === "could not insert object, most likely a uniqueness constraint was violated: " && tries < 10)
+                return convert_sbd(activekey, owner, amount, tries++);
+            console.error(error.message);
+        }
+    );
+}
 
 
 function power_up(Activekey, from, to, amount) {
