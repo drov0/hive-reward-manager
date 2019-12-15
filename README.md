@@ -13,11 +13,17 @@ Please check https://steemit.com/@howo to check for updates, I blog about it occ
 Current supported options are as follow : 
 
 
-max_ratio : (number eg 1.3) maximum STEEM to SBD ratio, this is to set a hard cap to not sell sbd if it hits that limit
-convert_sbd : (true/false) Whether to convert liquid sbd or not
-liquid_action :(put_in_savings/powerup) what to do with liquid STEEM, available options are : "powerup" (power it up), or "put_in_savings"
-liquid_to_account :(accountname eg : "howo") it is possible to power the liquid STEEM  or to put it in the savings of another account using this option 
-reset_power_down :(true/false) wether to reset the power down ever week or not if your steem power keeps climbing 
+>max_ratio : (number eg 1.3) maximum STEEM to SBD ratio, this is to set a hard cap to not sell sbd if it hits that limit
+
+>sell_sbd : (true/false) Whether to sell liquid sbd or not, uses max_ratio
+
+>convert_sbd : (true/false) Whether to convert liquid sbd or not
+
+>liquid_action :(put_in_savings/powerup) what to do with liquid STEEM, available options are : "powerup" (power it up), or "put_in_savings"
+
+>liquid_to_account :(accountname eg : "howo") it is possible to power the liquid STEEM  or to put it in the savings of another account using this option 
+
+>reset_power_down :(true/false) wether to reset the power down ever week or not if your steem power keeps climbing 
 
 ### Technology Stack
 
