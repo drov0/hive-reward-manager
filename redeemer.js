@@ -1,5 +1,5 @@
 var randy = require("randy");
-var accounts = require('./config.js');
+var accounts = require('./config.example.js');
 const moment = require("moment");
 
 var dsteem = require('dsteem');
