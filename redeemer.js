@@ -4,7 +4,7 @@ const moment = require("moment");
 
 var dsteem = require('dsteem');
 
-var client = new dsteem.Client('https://api.steemit.com');
+var client = new dsteem.Client('https://anyx.io');
 
 function power_down(account, wif, vesting)
 {
