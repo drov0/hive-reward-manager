@@ -1,16 +1,16 @@
 var randy = require("randy");
-var accounts = require('./config.example.js');
+var accounts = require('./config.js');
 const moment = require("moment");
 
-var dsteem = require('dsteem');
+var dhive = require('@hivechain/dhive');
 
-var client = new dsteem.Client('https://anyx.io');
+var client = new dhive.Client('https://anyx.io');
 
 function power_down(account, wif, vesting)
 {
     return new Promise(async resolve => {
 
-        const privateKey = dsteem.PrivateKey.fromString(wif);
+        const privateKey = dhive.PrivateKey.fromString(wif);
         const op = [
             'withdraw_vesting',
             {
@@ -65,13 +65,13 @@ async function sell_sbd(account, reward_sbd, name)
             const decimals = decimalPlaces(sell);
 
             if (decimals === 0)
-                sell += ".000 STEEM";
+                sell += ".000 HIVE";
             else if (decimals === 1)
-                sell += "00 STEEM";
+                sell += "00 HIVE";
             else if (decimals === 2)
-                sell += "0 STEEM";
+                sell += "0 HIVE";
             else
-                sell += " STEEM";
+                sell += " HIVE";
 
 
             const op = [
@@ -86,7 +86,7 @@ async function sell_sbd(account, reward_sbd, name)
                 }
             ];
 
-            const privateKey = dsteem.PrivateKey.fromString(account['wif']);
+            const privateKey = dhive.PrivateKey.fromString(account['wif']);
 
             client.broadcast.sendOperations([op], privateKey).then(
                 function() {
@@ -116,8 +116,8 @@ async function execute(times) {
     for (let account in accounts) {
 
         let response = await client.database.getAccounts([account]);
-        const reward_sbd = response[0]['reward_sbd_balance']; // will be claimed as Steem Dollars (SBD)
-        const reward_steem = response[0]['reward_steem_balance']; // this parameter is always '0.000 STEEM'
+        const reward_sbd = response[0]['reward_sbd_balance']; // will be claimed as Steem Dollars (HBD)
+        const reward_steem = response[0]['reward_steem_balance']; // this parameter is always '0.000 HIVE'
         const reward_vests = response[0]['reward_vesting_balance']; // this is the actual VESTS that will be claimed as SP
 
         const name = response[0].name;
@@ -171,7 +171,7 @@ async function execute(times) {
             console.log("Claiming rewards for account : " + name);
             if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0 || parseFloat(reward_vests) > 0) {
 
-                const privateKey = dsteem.PrivateKey.fromString(accounts[name]['wif']);
+                const privateKey = dhive.PrivateKey.fromString(accounts[name]['wif']);
                 const op = [
                     'claim_reward_balance',
                     {
@@ -213,12 +213,12 @@ run();
 
 function convert_sbd(activekey, owner, amount, tries = 0) {
 
-    const privateKey = dsteem.PrivateKey.fromString(activekey);
+    const privateKey = dhive.PrivateKey.fromString(activekey);
 
     const op = [
         'convert',
         {
-            amount: new dsteem.Asset(amount, "SBD"),
+            amount: new dhive.Asset(amount, "HBD"),
             owner: owner,
             requestid: Math.floor(Math.random() * 4294967294), // 4294967294 is the max request id possible
         },
@@ -238,7 +238,7 @@ function convert_sbd(activekey, owner, amount, tries = 0) {
 
 function power_up(Activekey, from, to, amount) {
 
-    const privateKey = dsteem.PrivateKey.fromString(Activekey);
+    const privateKey = dhive.PrivateKey.fromString(Activekey);
 
     const op = [
         'transfer_to_vesting',
@@ -249,17 +249,14 @@ function power_up(Activekey, from, to, amount) {
         },
     ];
     client.broadcast.sendOperations([op], privateKey).then(
-        function(result) {
-
-        },
-        function(error) {
-        }
+        function(result) {},
+        function(error) {}
     );
 }
 
 function transfer_to_savings(Activekey, from, to, amount) {
 
-    const privateKey = dsteem.PrivateKey.fromString(Activekey);
+    const privateKey = dhive.PrivateKey.fromString(Activekey);
 
     const op = [
         'transfer_to_savings',
@@ -269,15 +266,11 @@ function transfer_to_savings(Activekey, from, to, amount) {
             amount: amount,
             memo : "",
             request_id : randy.getRandBits(32),
-
         },
     ];
     client.broadcast.sendOperations([op], privateKey).then(
-        function(result) {
-
-        },
-        function(error) {
-        }
+        function(result) {},
+        function(error) {}
     );
 
 }
