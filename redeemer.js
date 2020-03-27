@@ -187,7 +187,14 @@ async function execute(times) {
 
                 console.log(name + " reward : " + reward_sbd + " , " + reward_steem + " " + reward_vests);
                 if (parseFloat(reward_sbd) > 0) {
-                    await sell_sbd(accounts[name], reward_sbd, name)
+                  if (accounts[name].convert_sbd === true) {
+                     console.log("converting hbd " + name);
+                     convert_sbd(accounts[name]['wif'], name, parseFloat(reward_sbd))
+                 }
+                 else if (accounts[name].sell_sbd === true) {
+                     console.log("Selling hbd for account : " + name);
+                     await sell_sbd(accounts[name], parseFloat(reward_sbd), name);
+                 }
                 }
             }
         }
