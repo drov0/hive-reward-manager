@@ -1,5 +1,5 @@
 {
-  "name": "steemgifts",
+  "name": "hive_reward_manager",
   "version": "1.0.0",
   "description": "Steem reward manager is a tool to automate the daily grind with claiming rewards and other steem tasks",
   "main": "main.js",
