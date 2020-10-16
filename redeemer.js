@@ -1,10 +1,8 @@
-var randy = require("randy");
-var accounts = require('./config.js');
+const randy = require("randy");
+const accounts = require('./config.js');
 const moment = require("moment");
-
-var dhive = require('@hivechain/dhive');
-
-var client = new dhive.Client('https://anyx.io');
+const dhive = require('@hiveio/dhive');
+const client = new dhive.Client('https://anyx.io', {rebrandedApi: true});
 
 function power_down(account, wif, vesting)
 {
@@ -32,8 +30,6 @@ function power_down(account, wif, vesting)
     });
 }
 
-
-
 /**
  * @param {float} num - Number to be analyzedgit
  * @return {int}  number of decimals
@@ -51,7 +47,7 @@ function decimalPlaces(num) {
         - (match[2] ? +match[2] : 0));
 }
 
-async function sell_sbd(account, reward_sbd, name)
+async function sell_hbd(account, reward_hbd, name)
 {
     return new Promise(async resolve => {
         const price_data = await client.database.call("get_order_book");
@@ -59,8 +55,8 @@ async function sell_sbd(account, reward_sbd, name)
         const date = (new Date(seconds * 1000)).toISOString().slice(0, 19);
         const price = price_data.asks[0].real_price;
         if (parseFloat(price) <= account['max_ratio']) {
-            console.log(reward_sbd + " on the account, price is "+ price +" sbd per steem, selling it ");
-            let sell = Math.round((parseFloat(reward_sbd) * ((1 - parseFloat(price)) + 1)) * 1000) / 1000;
+            console.log(reward_hbd + " on the account, price is "+ price +" hbd per hive, selling it ");
+            let sell = Math.round((parseFloat(reward_hbd) * ((1 - parseFloat(price)) + 1)) * 1000) / 1000;
 
             const decimals = decimalPlaces(sell);
 
@@ -77,7 +73,7 @@ async function sell_sbd(account, reward_sbd, name)
             const op = [
                 "limit_order_create",
                 {
-                    amount_to_sell : reward_sbd,
+                    amount_to_sell : reward_hbd,
                     expiration : date,
                     fill_or_kill : false,
                     min_to_receive : sell,
@@ -116,8 +112,8 @@ async function execute(times) {
     for (let account in accounts) {
 
         let response = await client.database.getAccounts([account]);
-        const reward_sbd = response[0]['reward_sbd_balance']; // will be claimed as Steem Dollars (HBD)
-        const reward_steem = response[0]['reward_steem_balance']; // this parameter is always '0.000 HIVE'
+        const reward_hbd = response[0]['reward_hbd_balance']; // will be claimed as hive Dollars (HBD)
+        const reward_hive = response[0]['reward_hive_balance']; // this parameter is always '0.000 HIVE'
         const reward_vests = response[0]['reward_vesting_balance']; // this is the actual VESTS that will be claimed as SP
 
         const name = response[0].name;
@@ -142,14 +138,14 @@ async function execute(times) {
 
         // Triggers every 5 minutes
         if (times % 5 === 0 || times === 0) {
-            if (parseFloat(response[0].sbd_balance) > 0) {
-                if (accounts[name].convert_sbd === true) {
-                    console.log("converting sbd " + name);
-                    convert_sbd(accounts[name]['wif'], name, parseFloat(response[0].sbd_balance))
+            if (parseFloat(response[0].hbd_balance) > 0) {
+                if (accounts[name].convert_hbd === true) {
+                    console.log("converting hbd " + name);
+                    convert_hbd(accounts[name]['wif'], name, parseFloat(response[0].hbd_balance))
                 }
-                else if (accounts[name].sell_sbd === true) {
-                    console.log("Selling sbd and executing actions on it for account : " + name);
-                    await sell_sbd(accounts[name], response[0].sbd_balance, name);
+                else if (accounts[name].sell_hbd === true) {
+                    console.log("Selling hbd and executing actions on it for account : " + name);
+                    await sell_hbd(accounts[name], response[0].hbd_balance, name);
                 }
             }
 
@@ -169,15 +165,15 @@ async function execute(times) {
         // if it's been an hour since the last execution.
         if (times === 60) {
             console.log("Claiming rewards for account : " + name);
-            if (parseFloat(reward_sbd) > 0 || parseFloat(reward_steem) > 0 || parseFloat(reward_vests) > 0) {
+            if (parseFloat(reward_hbd) > 0 || parseFloat(reward_hive) > 0 || parseFloat(reward_vests) > 0) {
 
                 const privateKey = dhive.PrivateKey.fromString(accounts[name]['wif']);
                 const op = [
                     'claim_reward_balance',
                     {
                         account: name,
-                        reward_steem: reward_steem,
-                        reward_sbd: reward_sbd,
+                        reward_hive: reward_hive,
+                        reward_hbd: reward_hbd,
                         reward_vests: reward_vests,
                     },
                 ];
@@ -185,15 +181,15 @@ async function execute(times) {
                     console.error(error);
                 });
 
-                console.log(name + " reward : " + reward_sbd + " , " + reward_steem + " " + reward_vests);
-                if (parseFloat(reward_sbd) > 0) {
-                  if (accounts[name].convert_sbd === true) {
+                console.log(name + " reward : " + reward_hbd + " , " + reward_hive + " " + reward_vests);
+                if (parseFloat(reward_hbd) > 0) {
+                  if (accounts[name].convert_hbd === true) {
                      console.log("converting hbd " + name);
-                     convert_sbd(accounts[name]['wif'], name, parseFloat(reward_sbd))
+                     convert_hbd(accounts[name]['wif'], name, parseFloat(reward_hbd))
                  }
-                 else if (accounts[name].sell_sbd === true) {
+                 else if (accounts[name].sell_hbd === true) {
                      console.log("Selling hbd for account : " + name);
-                     await sell_sbd(accounts[name], parseFloat(reward_sbd), name);
+                     await sell_hbd(accounts[name], parseFloat(reward_hbd), name);
                  }
                 }
             }
@@ -218,7 +214,7 @@ async function run() {
 console.log("Running...");
 run();
 
-function convert_sbd(activekey, owner, amount, tries = 0) {
+function convert_hbd(activekey, owner, amount, tries = 0) {
 
     const privateKey = dhive.PrivateKey.fromString(activekey);
 
@@ -236,7 +232,7 @@ function convert_sbd(activekey, owner, amount, tries = 0) {
         },
         function(error) {
             if (error.message === "could not insert object, most likely a uniqueness constraint was violated: " && tries < 10)
-                return convert_sbd(activekey, owner, amount, tries++);
+                return convert_hbd(activekey, owner, amount, tries++);
             console.error(error.message);
         }
     );

@@ -1,10 +1,10 @@
 {
   "name": "hive_reward_manager",
   "version": "1.0.0",
-  "description": "Steem reward manager is a tool to automate the daily grind with claiming rewards and other steem tasks",
+  "description": "Hive reward manager is a tool to automate the daily grind with claiming rewards and other steem tasks",
   "main": "main.js",
   "dependencies": {
-    "@hivechain/dhive": "^0.13.0",
+    "@hiveio/dhive": "^0.14.8",
     "moment": "^2.22.2",
     "randy": "^1.5.1",
     "steem": "^0.6.7",
