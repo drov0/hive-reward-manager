@@ -142,10 +142,16 @@ async function execute(times) {
                 if (accounts[name].convert_hbd === true) {
                     console.log("converting hbd " + name);
                     convert_hbd(accounts[name]['wif'], name, parseFloat(response[0].hbd_balance))
-                }
-                else if (accounts[name].sell_hbd === true) {
+                } else if (accounts[name].sell_hbd === true) {
                     console.log("Selling hbd and executing actions on it for account : " + name);
                     await sell_hbd(accounts[name], response[0].hbd_balance, name);
+                } else if (accounts[name].liquid_hbd_action === "transfer") {
+                    if (accounts[name].liquid_hbd_to_account !== "") {
+                        console.log(`Transferring ${response[0].hbd_balance} hbd from ${name} to ${accounts[name].liquid_hbd_to_account}`);
+                        await transfer(accounts[name]['wif'], name, accounts[name].liquid_hbd_to_account, response[0].hbd_balance, accounts[name].liquid_hbd_memo);
+                    } else {
+                        console.log(`cannot transfer hbd from ${name}: liquid_hbd_to_account is not defined`)
+                    }
                 }
             }
 
@@ -274,6 +280,17 @@ function transfer_to_savings(Activekey, from, to, amount) {
     client.broadcast.sendOperations([op], privateKey).then(
         function(result) {},
         function(error) {}
+    );
+
+}
+
+function transfer(Activekey, from, to, amount, memo) {
+    const privateKey = dhive.PrivateKey.fromString(Activekey);
+    client.broadcast.transfer({from, to, amount, memo}, privateKey).then(
+        function(result) {
+        },
+        function(error) {
+        }
     );
 
 }
