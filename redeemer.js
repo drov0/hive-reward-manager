@@ -149,7 +149,7 @@ async function execute(times) {
                     if (accounts[name].liquid_hbd_to_account !== "") {
                         // TODO: don't duplicate this code
                         if (accounts[name].liquid_hbd_action_min !== undefined) {
-                            if (accounts[name].liquid_hbd_action_min <= response[0].hbd_balance) {
+                            if (accounts[name].liquid_hbd_action_min <= parseFloat(response[0].hbd_balance)) {
                                 console.log(`Transferring ${response[0].hbd_balance} hbd from ${name} to ${accounts[name].liquid_hbd_to_account}`);
                                 await transfer(accounts[name]['wif'], name, accounts[name].liquid_hbd_to_account, response[0].hbd_balance, accounts[name].liquid_hbd_memo);
                             }
