@@ -147,8 +147,16 @@ async function execute(times) {
                     await sell_hbd(accounts[name], response[0].hbd_balance, name);
                 } else if (accounts[name].liquid_hbd_action === "transfer") {
                     if (accounts[name].liquid_hbd_to_account !== "") {
-                        console.log(`Transferring ${response[0].hbd_balance} hbd from ${name} to ${accounts[name].liquid_hbd_to_account}`);
-                        await transfer(accounts[name]['wif'], name, accounts[name].liquid_hbd_to_account, response[0].hbd_balance, accounts[name].liquid_hbd_memo);
+                        // TODO: don't duplicate this code
+                        if (accounts[name].liquid_hbd_action_min !== undefined) {
+                            if (accounts[name].liquid_hbd_action_min <= response[0].hbd_balance) {
+                                console.log(`Transferring ${response[0].hbd_balance} hbd from ${name} to ${accounts[name].liquid_hbd_to_account}`);
+                                await transfer(accounts[name]['wif'], name, accounts[name].liquid_hbd_to_account, response[0].hbd_balance, accounts[name].liquid_hbd_memo);
+                            }
+                        } else {
+                            console.log(`Transferring ${response[0].hbd_balance} hbd from ${name} to ${accounts[name].liquid_hbd_to_account}`);
+                            await transfer(accounts[name]['wif'], name, accounts[name].liquid_hbd_to_account, response[0].hbd_balance, accounts[name].liquid_hbd_memo);
+                        }
                     } else {
                         console.log(`cannot transfer hbd from ${name}: liquid_hbd_to_account is not defined`)
                     }
