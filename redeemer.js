@@ -161,12 +161,15 @@ async function execute(times) {
                         console.log(`cannot transfer hbd from ${name}: liquid_hbd_to_account is not defined`)
                     }
                 } else if (accounts[name].liquid_hbd_action === "put_in_savings") {
-                    if (parseFloat(response[0].hbd_balance) > 0) {
-                        transfer_to_savings(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].hbd_balance);
-                        console.log(response[0].hbd_balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
+                    if (accounts[name].liquid_hbd_action_min !== undefined) {
+                        if (accounts[name].liquid_hbd_action_min <= parseFloat(response[0].hbd_balance)) {
+                            if (parseFloat(response[0].hbd_balance) > 0) {
+                                transfer_to_savings(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].hbd_balance);
+                                console.log(response[0].hbd_balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
+                            }
+                        }
                     }
                 }
-            }
 
             if (accounts[name].liquid_action === "powerup") {
                 if (parseFloat(response[0].balance) > 0) {
