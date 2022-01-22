@@ -160,6 +160,11 @@ async function execute(times) {
                     } else {
                         console.log(`cannot transfer hbd from ${name}: liquid_hbd_to_account is not defined`)
                     }
+                } else if (accounts[name].liquid_hbd_action === "put_in_savings") {
+                    if (parseFloat(response[0].hbd_balance) > 0) {
+                        transfer_to_savings(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].hbd_balance);
+                        console.log(response[0].hbd_balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
+                    }
                 }
             }
 
