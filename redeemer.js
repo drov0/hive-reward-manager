@@ -2,7 +2,7 @@ const randy = require("randy");
 const accounts = require('./config.js');
 const moment = require("moment");
 const dhive = require('@hiveio/dhive');
-const client = new dhive.Client('https://anyx.io', {rebrandedApi: true});
+const client = new dhive.Client('https://api.hive.blog', {rebrandedApi: true});
 
 function power_down(account, wif, vesting)
 {
@@ -171,52 +171,53 @@ async function execute(times) {
                     }
                 }
 
-            if (accounts[name].liquid_action === "powerup") {
-                if (parseFloat(response[0].balance) > 0) {
-                    power_up(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
-                    console.log(response[0].balance + " on " + name + ", powering it up to " + accounts[name].liquid_to_account)
-                }
-            } else if (accounts[name].liquid_action === "put_in_savings") {
-                if (parseFloat(response[0].balance) > 0) {
-                    transfer_to_savings(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
-                    console.log(response[0].balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
-                }
-            }
-        }
-
-        // if it's been an hour since the last execution.
-        if (times === 60) {
-            console.log("Claiming rewards for account : " + name);
-            if (parseFloat(reward_hbd) > 0 || parseFloat(reward_hive) > 0 || parseFloat(reward_vests) > 0) {
-
-                const privateKey = dhive.PrivateKey.fromString(accounts[name]['wif']);
-                const op = [
-                    'claim_reward_balance',
-                    {
-                        account: name,
-                        reward_hive: reward_hive,
-                        reward_hbd: reward_hbd,
-                        reward_vests: reward_vests,
-                    },
-                ];
-                await client.broadcast.sendOperations([op], privateKey).catch( function(error) {
-                    console.error(error);
-                });
-
-                console.log(name + " reward : " + reward_hbd + " , " + reward_hive + " " + reward_vests);
-                if (parseFloat(reward_hbd) > 0) {
-                  if (accounts[name].convert_hbd === true) {
-                     console.log("converting hbd " + name);
-                     convert_hbd(accounts[name]['wif'], name, parseFloat(reward_hbd))
-                 }
-                 else if (accounts[name].sell_hbd === true) {
-                     console.log("Selling hbd for account : " + name);
-                     await sell_hbd(accounts[name], parseFloat(reward_hbd), name);
-                 }
+                if (accounts[name].liquid_action === "powerup") {
+                    if (parseFloat(response[0].balance) > 0) {
+                        power_up(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
+                        console.log(response[0].balance + " on " + name + ", powering it up to " + accounts[name].liquid_to_account)
+                    }
+                } else if (accounts[name].liquid_action === "put_in_savings") {
+                    if (parseFloat(response[0].balance) > 0) {
+                        transfer_to_savings(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
+                        console.log(response[0].balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
+                    }
                 }
             }
-        }
 
+            // if it's been an hour since the last execution.
+            if (times === 60) {
+                console.log("Claiming rewards for account : " + name);
+                if (parseFloat(reward_hbd) > 0 || parseFloat(reward_hive) > 0 || parseFloat(reward_vests) > 0) {
+
+                    const privateKey = dhive.PrivateKey.fromString(accounts[name]['wif']);
+                    const op = [
+                        'claim_reward_balance',
+                        {
+                            account: name,
+                            reward_hive: reward_hive,
+                            reward_hbd: reward_hbd,
+                            reward_vests: reward_vests,
+                        },
+                    ];
+                    await client.broadcast.sendOperations([op], privateKey).catch( function(error) {
+                        console.error(error);
+                    });
+
+                    console.log(name + " reward : " + reward_hbd + " , " + reward_hive + " " + reward_vests);
+                    if (parseFloat(reward_hbd) > 0) {
+                        if (accounts[name].convert_hbd === true) {
+                            console.log("converting hbd " + name);
+                            convert_hbd(accounts[name]['wif'], name, parseFloat(reward_hbd))
+                        }
+                        else if (accounts[name].sell_hbd === true) {
+                            console.log("Selling hbd for account : " + name);
+                            await sell_hbd(accounts[name], parseFloat(reward_hbd), name);
+                        }
+                    }
+                }
+            }
+
+        }
     }
 }
 
@@ -308,7 +309,7 @@ function transfer(Activekey, from, to, amount, memo) {
         function(error) {
         }
     );
-
 }
+
 
 
