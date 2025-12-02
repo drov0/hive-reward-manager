@@ -31,7 +31,7 @@ function power_down(account, wif, vesting)
 }
 
 /**
- * @param {float} num - Number to be analyzedgit
+ * @param {float} num - Number to be analyzed
  * @return {int}  number of decimals
  */
 function decimalPlaces(num) {
@@ -129,7 +129,7 @@ async function execute(times) {
                 // Reason for this is that you can't power down all your sp if you voting power isn't 100%
                 // 100 is one extra 0.1%  just to be sure that the power down will work
                 let current_available_shares = Math.floor((response[0].voting_power - 100) / 10000 * parseFloat(response[0].vesting_shares)) + ".000000 VESTS";
-                console.log("reset power down on " + name + "Powering down " + current_available_shares);
+                console.log("reset power down on " + name + " Powering down " + current_available_shares);
                 await power_down(name, accounts[name]['wif'], current_available_shares);
                 let updated_account = await client.database.getAccounts([account]);
                 accounts[name].power_down_date = updated_account[0].next_vesting_withdrawal;
@@ -141,7 +141,7 @@ async function execute(times) {
             if (parseFloat(response[0].hbd_balance) > 0) {
                 if (accounts[name].convert_hbd === true) {
                     console.log("converting hbd " + name);
-                    convert_hbd(accounts[name]['wif'], name, parseFloat(response[0].hbd_balance))
+                    await convert_hbd(accounts[name]['wif'], name, parseFloat(response[0].hbd_balance))
                 } else if (accounts[name].sell_hbd === true) {
                     console.log("Selling hbd and executing actions on it for account : " + name);
                     await sell_hbd(accounts[name], response[0].hbd_balance, name);
@@ -207,7 +207,7 @@ async function execute(times) {
                     if (parseFloat(reward_hbd) > 0) {
                         if (accounts[name].convert_hbd === true) {
                             console.log("converting hbd " + name);
-                            convert_hbd(accounts[name]['wif'], name, parseFloat(reward_hbd))
+                            await convert_hbd(accounts[name]['wif'], name, parseFloat(reward_hbd))
                         }
                         else if (accounts[name].sell_hbd === true) {
                             console.log("Selling hbd for account : " + name);
@@ -237,7 +237,7 @@ async function run() {
 console.log("Running...");
 run();
 
-function convert_hbd(activekey, owner, amount, tries = 0) {
+async function convert_hbd(activekey, owner, amount, tries = 0) {
 
     const privateKey = dhive.PrivateKey.fromString(activekey);
 
@@ -255,7 +255,7 @@ function convert_hbd(activekey, owner, amount, tries = 0) {
         },
         function(error) {
             if (error.message === "could not insert object, most likely a uniqueness constraint was violated: " && tries < 10)
-                return convert_hbd(activekey, owner, amount, tries++);
+                return convert_hbd(activekey, owner, amount, ++tries);
             console.error(error.message);
         }
     );
@@ -307,9 +307,8 @@ function transfer(Activekey, from, to, amount, memo) {
         function(result) {
         },
         function(error) {
+            console.error(error)
         }
     );
 }
-
-
 
