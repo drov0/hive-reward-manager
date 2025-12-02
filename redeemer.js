@@ -60,6 +60,60 @@ async function get_median_hive_price() {
 }
 
 /**
+ * Get the best available market price for selling HBD
+ * Checks the orderbook to see what price we can actually get
+ * @param {number} hbd_amount - Amount of HBD to sell
+ * @return {Promise<number>} HIVE amount we'd receive at market price
+ */
+async function get_market_price_for_hbd(hbd_amount) {
+    try {
+        // Get orderbook - we want to see buy orders (people buying HBD with HIVE)
+        const orderbook = await client.database.call('get_order_book', [50]);
+
+        // We're selling HBD, so we look at the "bids" (buy orders for HBD)
+        // Each bid shows: someone wants to buy X HBD and will pay Y HIVE
+        const bids = orderbook.bids;
+
+        if (!bids || bids.length === 0) {
+            console.log('No buy orders in orderbook, will use fallback pricing');
+            return null;
+        }
+
+        let hbd_remaining = hbd_amount;
+        let total_hive = 0;
+
+        // Walk through the orderbook to see how much HIVE we'd get
+        for (const bid of bids) {
+            // bid.hbd: amount of HBD they want to buy
+            // bid.hive: amount of HIVE they're offering
+            // bid.real_price: HBD price in HIVE (e.g., 0.112 means 1 HBD = 0.112 HIVE)
+            const bid_hbd = bid.hbd;
+            const bid_hive = bid.hive;
+
+            if (hbd_remaining <= 0) break;
+
+            const hbd_to_fill = Math.min(hbd_remaining, bid_hbd);
+            const hive_received = hbd_to_fill * (bid_hive / bid_hbd);
+
+            total_hive += hive_received;
+            hbd_remaining -= hbd_to_fill;
+        }
+
+        if (hbd_remaining > 0) {
+            // Orderbook doesn't have enough depth
+            console.log(`Orderbook only has depth for ${hbd_amount - hbd_remaining} HBD of ${hbd_amount} HBD`);
+            return null;
+        }
+
+        return total_hive;
+
+    } catch (error) {
+        console.error('Error fetching orderbook:', error);
+        return null;
+    }
+}
+
+/**
  * Cancel all open orders for an account
  * @param {string} wif - Active key for the account
  * @param {string} account - Account name
@@ -94,7 +148,7 @@ async function cancel_all_orders(wif, account) {
 }
 
 /**
- * Sell HBD on the internal market with 2% max slippage
+ * Sell HBD on the internal market at best available price with 2% max slippage
  * Only sells if there's at least 10 HBD and price is acceptable
  * @param {object} account - Account config object
  * @param {string} reward_hbd - HBD balance as string (e.g., "10.000 HBD")
@@ -114,19 +168,40 @@ async function sell_hbd(account, reward_hbd, name)
                 return resolve("=");
             }
 
-            // Get median HIVE price in USD
+            // Get median HIVE price in USD for calculating floor price
             const hive_price_usd = await get_median_hive_price();
 
-            // Calculate how much HIVE we should receive for our HBD
-            // We want to sell HBD at ~$1, with 2% slippage we accept $0.98
-            // So: hbd_amount * $0.98 = X HIVE * hive_price_usd
-            // Therefore: X = (hbd_amount * 0.98) / hive_price_usd
-            const min_hive_to_receive = (hbd_amount * 0.98) / hive_price_usd;
+            // Calculate minimum acceptable HIVE (floor at $0.98 per HBD)
+            const min_hive_floor = (hbd_amount * 0.98) / hive_price_usd;
+
+            // Try to get actual market price from orderbook
+            let hive_to_receive = await get_market_price_for_hbd(hbd_amount);
+
+            let price_source = 'market';
+            let effective_hbd_price = null;
+
+            if (hive_to_receive === null) {
+                // Fallback to floor price if we can't get market price
+                hive_to_receive = min_hive_floor;
+                price_source = 'floor (no market data)';
+                effective_hbd_price = 0.98;
+            } else {
+                // Calculate what price we're actually getting
+                effective_hbd_price = (hive_to_receive * hive_price_usd) / hbd_amount;
+
+                // If market price is below our floor, use the floor instead
+                if (hive_to_receive < min_hive_floor) {
+                    console.log(`${name}: Market price $${effective_hbd_price.toFixed(4)} is below $0.98 floor, using floor price`);
+                    hive_to_receive = min_hive_floor;
+                    price_source = 'floor (market below threshold)';
+                    effective_hbd_price = 0.98;
+                }
+            }
 
             // Format HIVE amount to 3 decimal places
-            let hive_amount_str = min_hive_to_receive.toFixed(3) + " HIVE";
+            let hive_amount_str = hive_to_receive.toFixed(3) + " HIVE";
 
-            console.log(`${name}: Selling ${reward_hbd} for minimum ${hive_amount_str} (HIVE price: $${hive_price_usd.toFixed(4)}, effective HBD price: $0.98)`);
+            console.log(`${name}: Selling ${reward_hbd} for minimum ${hive_amount_str} (HIVE price: $${hive_price_usd.toFixed(4)}, effective HBD price: $${effective_hbd_price.toFixed(4)}, source: ${price_source})`);
 
             // Create the limit order
             const seconds = Math.round(Date.now() / 1000) + 604800; // 1 week expiry
