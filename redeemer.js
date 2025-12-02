@@ -270,6 +270,7 @@ async function execute(times) {
 
         // Triggers every 5 minutes
         if (times % 5 === 0 || times === 0) {
+            // Handle HBD balance
             if (parseFloat(response[0].hbd_balance) > 0) {
                 if (accounts[name].convert_hbd === true) {
                     console.log("converting hbd " + name);
@@ -302,29 +303,30 @@ async function execute(times) {
                         }
                     }
                 }
+            }
 
-                if (accounts[name].liquid_action === "powerup") {
-                    if (parseFloat(response[0].balance) > 0) {
-                        power_up(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
-                        console.log(response[0].balance + " on " + name + ", powering it up to " + accounts[name].liquid_to_account)
-                    }
-                } else if (accounts[name].liquid_action === "put_in_savings") {
-                    if (parseFloat(response[0].balance) > 0) {
-                        transfer_to_savings(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
-                        console.log(response[0].balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
-                    }
-                } else if (accounts[name].liquid_action === "transfer") {
-                    if (accounts[name].liquid_to_account !== "") {
-                        const hive_balance = parseFloat(response[0].balance);
-                        const min_threshold = accounts[name].liquid_action_min || 0;
+            // Handle liquid HIVE balance (independent of HBD balance)
+            if (accounts[name].liquid_action === "powerup") {
+                if (parseFloat(response[0].balance) > 0) {
+                    power_up(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
+                    console.log(response[0].balance + " on " + name + ", powering it up to " + accounts[name].liquid_to_account)
+                }
+            } else if (accounts[name].liquid_action === "put_in_savings") {
+                if (parseFloat(response[0].balance) > 0) {
+                    transfer_to_savings(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
+                    console.log(response[0].balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
+                }
+            } else if (accounts[name].liquid_action === "transfer") {
+                if (accounts[name].liquid_to_account !== "") {
+                    const hive_balance = parseFloat(response[0].balance);
+                    const min_threshold = accounts[name].liquid_action_min || 0;
 
-                        if (hive_balance >= min_threshold) {
-                            console.log(`Transferring ${response[0].balance} HIVE from ${name} to ${accounts[name].liquid_to_account}`);
-                            await transfer(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance, accounts[name].liquid_memo || "");
-                        }
-                    } else {
-                        console.log(`cannot transfer HIVE from ${name}: liquid_to_account is not defined`)
+                    if (hive_balance >= min_threshold) {
+                        console.log(`Transferring ${response[0].balance} HIVE from ${name} to ${accounts[name].liquid_to_account}`);
+                        await transfer(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance, accounts[name].liquid_memo || "");
                     }
+                } else {
+                    console.log(`cannot transfer HIVE from ${name}: liquid_to_account is not defined`)
                 }
             }
 
