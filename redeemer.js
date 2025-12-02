@@ -313,6 +313,18 @@ async function execute(times) {
                         transfer_to_savings(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance);
                         console.log(response[0].balance + " on " + name + ", putting it in the savings to " + accounts[name].liquid_to_account)
                     }
+                } else if (accounts[name].liquid_action === "transfer") {
+                    if (accounts[name].liquid_to_account !== "") {
+                        const hive_balance = parseFloat(response[0].balance);
+                        const min_threshold = accounts[name].liquid_action_min || 0;
+
+                        if (hive_balance >= min_threshold) {
+                            console.log(`Transferring ${response[0].balance} HIVE from ${name} to ${accounts[name].liquid_to_account}`);
+                            await transfer(accounts[name]['wif'], name, accounts[name].liquid_to_account, response[0].balance, accounts[name].liquid_memo || "");
+                        }
+                    } else {
+                        console.log(`cannot transfer HIVE from ${name}: liquid_to_account is not defined`)
+                    }
                 }
             }
 
