@@ -2,6 +2,7 @@ module.exports =
     {
         "howo" : {
             "wif":"activewif",
+            "posting_wif":"postingwif", // required for claiming rewards (HF28+)
             "max_ratio" : 1.3,
             "convert_hbd" : true,
             "liquid_action" : "powerup", // power up the liquid hive
@@ -10,6 +11,7 @@ module.exports =
         },
         "account2" : {
             "wif":"activewif",
+            "posting_wif":"postingwif", // required for claiming rewards (HF28+)
             "max_ratio" : 1.3,
             "sell_hbd" : true,
             "liquid_action" : "put_in_savings", // put in savings the liquid hive

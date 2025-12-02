@@ -342,19 +342,24 @@ async function execute(times) {
 
                 if (parseFloat(reward_hbd) > 0 || parseFloat(reward_hive) > 0 || parseFloat(reward_vests) > 0) {
 
-                    const privateKey = dhive.PrivateKey.fromString(accounts[name]['wif']);
-                    const op = [
-                        'claim_reward_balance',
-                        {
-                            account: name,
-                            reward_hive: reward_hive,
-                            reward_hbd: reward_hbd,
-                            reward_vests: reward_vests,
-                        },
-                    ];
-                    await client.broadcast.sendOperations([op], privateKey).catch( function(error) {
-                        console.error(error);
-                    });
+                    // Use posting key for claiming rewards (required since HF28)
+                    if (!accounts[name]['posting_wif']) {
+                        console.error(`${name}: Cannot claim rewards - posting_wif not configured (required since HF28)`);
+                    } else {
+                        const privateKey = dhive.PrivateKey.fromString(accounts[name]['posting_wif']);
+                        const op = [
+                            'claim_reward_balance',
+                            {
+                                account: name,
+                                reward_hive: reward_hive,
+                                reward_hbd: reward_hbd,
+                                reward_vests: reward_vests,
+                            },
+                        ];
+                        await client.broadcast.sendOperations([op], privateKey).catch( function(error) {
+                            console.error(error);
+                        });
+                    }
 
                     console.log(name + " reward : " + reward_hbd + " , " + reward_hive + " " + reward_vests);
                     if (parseFloat(reward_hbd) > 0) {
