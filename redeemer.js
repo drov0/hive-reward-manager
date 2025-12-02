@@ -47,56 +47,113 @@ function decimalPlaces(num) {
         - (match[2] ? +match[2] : 0));
 }
 
+/**
+ * Get the median HIVE price in USD from the blockchain
+ * @return {Promise<number>} median HIVE price in USD
+ */
+async function get_median_hive_price() {
+    const feedHistory = await client.database.call('get_feed_history');
+    const base = parseFloat(feedHistory.current_median_history.base);
+    const quote = parseFloat(feedHistory.current_median_history.quote);
+    // current_median_history is HBD/HIVE price, so HIVE price in USD = base (HBD assumed $1)
+    return base / quote;
+}
+
+/**
+ * Cancel all open orders for an account
+ * @param {string} wif - Active key for the account
+ * @param {string} account - Account name
+ * @return {Promise<number>} number of orders cancelled
+ */
+async function cancel_all_orders(wif, account) {
+    return new Promise(async resolve => {
+        try {
+            const openOrders = await client.database.call('get_open_orders', [account]);
+
+            if (openOrders.length === 0) {
+                return resolve(0);
+            }
+
+            const privateKey = dhive.PrivateKey.fromString(wif);
+            const operations = openOrders.map(order => [
+                'limit_order_cancel',
+                {
+                    owner: account,
+                    orderid: order.orderid
+                }
+            ]);
+
+            await client.broadcast.sendOperations(operations, privateKey);
+            console.log(`Cancelled ${openOrders.length} orders for ${account}`);
+            return resolve(openOrders.length);
+        } catch (error) {
+            console.error(`Error cancelling orders for ${account}:`, error);
+            return resolve(0);
+        }
+    });
+}
+
+/**
+ * Sell HBD on the internal market with 2% max slippage
+ * Only sells if there's at least 10 HBD and price is acceptable
+ * @param {object} account - Account config object
+ * @param {string} reward_hbd - HBD balance as string (e.g., "10.000 HBD")
+ * @param {string} name - Account name
+ * @return {Promise<string>} status
+ */
 async function sell_hbd(account, reward_hbd, name)
 {
     return new Promise(async resolve => {
-        const price_data = await client.database.call("get_order_book");
-        const seconds = Math.round(Date.now() / 1000) + 604800;
-        const date = (new Date(seconds * 1000)).toISOString().slice(0, 19);
-        const price = price_data.asks[0].real_price;
-        if (parseFloat(price) <= account['max_ratio']) {
-            console.log(reward_hbd + " on the account, price is "+ price +" hbd per hive, selling it ");
-            let sell = Math.round((parseFloat(reward_hbd) * ((1 - parseFloat(price)) + 1)) * 1000) / 1000;
+        try {
+            // Extract numeric value from HBD balance
+            const hbd_amount = parseFloat(reward_hbd);
 
-            const decimals = decimalPlaces(sell);
+            // Only sell if we have at least 10 HBD
+            if (hbd_amount < 10) {
+                console.log(`${name}: HBD balance ${hbd_amount} is below 10 HBD minimum, skipping sale`);
+                return resolve("=");
+            }
 
-            if (decimals === 0)
-                sell += ".000 HIVE";
-            else if (decimals === 1)
-                sell += "00 HIVE";
-            else if (decimals === 2)
-                sell += "0 HIVE";
-            else
-                sell += " HIVE";
+            // Get median HIVE price in USD
+            const hive_price_usd = await get_median_hive_price();
 
+            // Calculate how much HIVE we should receive for our HBD
+            // We want to sell HBD at ~$1, with 2% slippage we accept $0.98
+            // So: hbd_amount * $0.98 = X HIVE * hive_price_usd
+            // Therefore: X = (hbd_amount * 0.98) / hive_price_usd
+            const min_hive_to_receive = (hbd_amount * 0.98) / hive_price_usd;
+
+            // Format HIVE amount to 3 decimal places
+            let hive_amount_str = min_hive_to_receive.toFixed(3) + " HIVE";
+
+            console.log(`${name}: Selling ${reward_hbd} for minimum ${hive_amount_str} (HIVE price: $${hive_price_usd.toFixed(4)}, effective HBD price: $0.98)`);
+
+            // Create the limit order
+            const seconds = Math.round(Date.now() / 1000) + 604800; // 1 week expiry
+            const date = (new Date(seconds * 1000)).toISOString().slice(0, 19);
 
             const op = [
                 "limit_order_create",
                 {
-                    amount_to_sell : reward_hbd,
-                    expiration : date,
-                    fill_or_kill : false,
-                    min_to_receive : sell,
-                    orderid : randy.getRandBits(32),
-                    owner : name
+                    amount_to_sell: reward_hbd,
+                    expiration: date,
+                    fill_or_kill: false,
+                    min_to_receive: hive_amount_str,
+                    orderid: randy.getRandBits(32),
+                    owner: name
                 }
             ];
 
             const privateKey = dhive.PrivateKey.fromString(account['wif']);
 
-            client.broadcast.sendOperations([op], privateKey).then(
-                function() {
-                    console.log("sent buy order for " + name + " : " + sell);
-                    return resolve("=");
-                },
-                function(error) {
-                    console.error(error);
-                    return resolve("-");
-                }
-            );
+            await client.broadcast.sendOperations([op], privateKey);
+            console.log(`${name}: Created sell order for ${reward_hbd} -> ${hive_amount_str}`);
+            return resolve("=");
 
-        } else
-            return resolve("=")
+        } catch (error) {
+            console.error(`${name}: Error selling HBD:`, error);
+            return resolve("-");
+        }
     });
 }
 
@@ -187,6 +244,13 @@ async function execute(times) {
             // if it's been an hour since the last execution.
             if (times === 60) {
                 console.log("Claiming rewards for account : " + name);
+
+                // Cancel any existing orders before creating new ones
+                if (accounts[name].sell_hbd === true) {
+                    console.log(`${name}: Cancelling any existing HBD sell orders`);
+                    await cancel_all_orders(accounts[name]['wif'], name);
+                }
+
                 if (parseFloat(reward_hbd) > 0 || parseFloat(reward_hive) > 0 || parseFloat(reward_vests) > 0) {
 
                     const privateKey = dhive.PrivateKey.fromString(accounts[name]['wif']);
@@ -214,6 +278,12 @@ async function execute(times) {
                             await sell_hbd(accounts[name], parseFloat(reward_hbd), name);
                         }
                     }
+                }
+
+                // After claiming, check if there's HBD balance to sell
+                if (accounts[name].sell_hbd === true && parseFloat(response[0].hbd_balance) >= 10) {
+                    console.log(`${name}: Selling existing HBD balance after hourly check`);
+                    await sell_hbd(accounts[name], response[0].hbd_balance, name);
                 }
             }
 
